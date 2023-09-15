@@ -30,7 +30,6 @@ class CreateImageView(generics.CreateAPIView):
                 raise ValidationError('File extension not allowed')
         except DjangoValidationError:
             raise ValidationError('Incorrect file')
-
         return super().post(request, *args, **kwargs)
 
     def perform_create(self, serializer):

@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from user_app.api.managers import CustomUserManager
 
 
+# Dopisać walidację thumbnail_size czy admin wpisał liczby po przecinku jakieś wyrażenie regularne
 class AccountTier(models.Model):
     name = models.CharField(max_length=255, null=False, blank=False)
     thumbnail_size = models.CharField(max_length=255, null=False, blank=False)

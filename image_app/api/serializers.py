@@ -24,10 +24,8 @@ class ImageSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         image = validated_data['original_image']
         image_name, image_extension = os.path.splitext(image.name)
-        print(image_extension)
         if image_extension == '.jpg':
             image_extension = '.jpeg'
-        print(image_extension)
         image_obj = Image.objects.create(**validated_data)
         user = validated_data.get('user')
         thumbnail_sizes = list(map(int, user.account_tier.thumbnail_size.split(',')))
@@ -39,12 +37,11 @@ class ImageSerializer(serializers.ModelSerializer):
                 im.save(buffer, image_extension.replace('.', ''))
                 thumbnail_obj = Thumbnail.objects.create(name=thumbnail_name, image=image_obj)
                 thumbnail_obj.thumbnail.save(thumbnail_name, buffer)
-                print(thumbnail_obj)
         return image_obj
 
-    def get_fields(self):
-        fields = super().get_fields()
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
         user = self.context['request'].user
         if not user.account_tier.original_link:
-            fields.pop('original_image')
-        return fields
+            representation.pop('original_image', None)
+        return representation
