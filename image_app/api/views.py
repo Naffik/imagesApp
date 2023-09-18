@@ -1,11 +1,16 @@
+from datetime import timedelta
+
+from django.http import FileResponse
+from django.utils import timezone
 from rest_framework import generics, status
 from rest_framework.exceptions import ValidationError
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from .serializers import ImageSerializer
-from image_app.models import Image
+from .serializers import ImageSerializer, ExpirationLinkSerializer
+from image_app.models import Image, ExpirationLink
 
 ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png']
 
@@ -44,3 +49,55 @@ class ListImageView(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.user
         return Image.objects.all().filter(user=user)
+
+
+class ExpirationLinkCreateAPIView(APIView):
+
+    def post(self, request, pk):
+        user = request.user
+        min_duration = user.account_tier.expiring_link_duration_min
+        max_duration = user.account_tier.expiring_link_duration_max
+        if not user.is_authenticated:
+            return Response({'error': 'Not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            image = Image.objects.get(pk=pk)
+        except Image.DoesNotExist:
+            return Response({'error': 'Photo not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if image.user != request.user:
+            return Response({'error': 'You do not have permission to create an expiration link for this photo'},
+                            status=status.HTTP_403_FORBIDDEN)
+
+        expiration_time = request.data.get('expiration-time', None)
+
+        if not expiration_time:
+            return Response({'error': 'Expiration time not specified'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not min_duration <= expiration_time <= max_duration:
+            return Response({'error': f'Expiration time needs to be between {min_duration} and {max_duration}'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        expiration_time = timezone.now() + timedelta(seconds=int(expiration_time))
+
+        link = ExpirationLink(image=image, expiration_time=expiration_time)
+        link.save()
+
+        serializer = ExpirationLinkSerializer(link, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class ExpirationLinkRetrieveView(APIView):
+
+    def get(self, request, token):
+        try:
+            exp_link = ExpirationLink.objects.get(token=token)
+        except ExpirationLink.DoesNotExist:
+            return Response({'error': 'Invalid or expired link'}, status=status.HTTP_404_NOT_FOUND)
+
+        if not exp_link.is_valid():
+            return Response({'error': 'Link has expired'}, status=status.HTTP_410_GONE)
+
+        image_path = exp_link.image.original_image.path
+        image_content_type = 'image/jpeg'
+        img = open(image_path, 'rb')
+        return FileResponse(img, content_type=image_content_type)

@@ -1,5 +1,6 @@
+from django.urls import reverse
 from rest_framework import serializers
-from image_app.models import Image, Thumbnail
+from image_app.models import Image, Thumbnail, ExpirationLink
 from PIL import Image as img
 import os
 from io import BytesIO
@@ -45,3 +46,22 @@ class ImageSerializer(serializers.ModelSerializer):
         if not user.account_tier.original_link:
             representation.pop('original_image', None)
         return representation
+
+
+class ExpirationLinkSerializer(serializers.ModelSerializer):
+    link = serializers.SerializerMethodField()
+    expiration_time = serializers.DateTimeField(read_only=True)
+
+    class Meta:
+        model = ExpirationLink
+        fields = ('expiration_time', 'link',)
+
+    def get_image(self, obj):
+        request = self.context.get('request')
+        if request is not None:
+            return request.build_absolute_uri(obj.image.original_image.url)
+        return obj.image.original_image.url
+
+    def get_link(self, obj):
+        request = self.context.get('request')
+        return request.build_absolute_uri(reverse('retrieve_expiring_image', kwargs={'token': obj.token}))
