@@ -20,13 +20,19 @@ def allowed_file(filename):
 
 
 class CreateImageView(generics.CreateAPIView):
+    """
+    Create a new image with POST data.
+
+    Parameters:
+    - original_image: The image file to be uploaded. The file should have a supported extension.
+    """
     permissions_classes = [IsAuthenticated]
     serializer_class = ImageSerializer
 
     def post(self, request, *args, **kwargs):
         user = request.user
         if not user.is_authenticated:
-            return Response({'message': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error': 'Unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
         if 'original_image' not in request.FILES:
             raise ValidationError('File not uploaded')
         file = request.FILES['original_image']
@@ -43,6 +49,9 @@ class CreateImageView(generics.CreateAPIView):
 
 
 class ListImageView(generics.ListAPIView):
+    """
+    List all images associated with the authenticated user.
+    """
     permission_classes = [IsAuthenticated]
     serializer_class = ImageSerializer
 
@@ -52,11 +61,16 @@ class ListImageView(generics.ListAPIView):
 
 
 class ExpirationLinkCreateAPIView(APIView):
+    """
+    Create an expiration link for a specified image using POST data.
+
+    Parameters:
+    - id: The unique identifier of the image.
+
+    """
 
     def post(self, request, pk):
         user = request.user
-        min_duration = user.account_tier.expiring_link_duration_min
-        max_duration = user.account_tier.expiring_link_duration_max
         if not user.is_authenticated:
             return Response({'error': 'Not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
         try:
@@ -68,12 +82,18 @@ class ExpirationLinkCreateAPIView(APIView):
             return Response({'error': 'You do not have permission to create an expiration link for this photo'},
                             status=status.HTTP_403_FORBIDDEN)
 
+        min_duration = user.account_tier.expiring_link_duration_min
+        max_duration = user.account_tier.expiring_link_duration_max
         expiration_time = request.data.get('expiration-time', None)
 
         if not expiration_time:
             return Response({'error': 'Expiration time not specified'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if not min_duration <= expiration_time <= max_duration:
+        try:
+            expiration_time = int(request.data.get('expiration-time', None))
+            if not min_duration <= expiration_time <= max_duration:
+                raise ValueError
+        except (ValueError, TypeError):
             return Response({'error': f'Expiration time needs to be between {min_duration} and {max_duration}'},
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -87,6 +107,13 @@ class ExpirationLinkCreateAPIView(APIView):
 
 
 class ExpirationLinkRetrieveView(APIView):
+    """
+    Retrieve an image associated with a given expiration link.
+
+    Parameters:
+    - token: The unique identifier associated with the ExpirationLink.
+
+    """
 
     def get(self, request, token):
         try:
