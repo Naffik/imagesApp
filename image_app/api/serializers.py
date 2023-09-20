@@ -31,11 +31,17 @@ class ImageSerializer(serializers.ModelSerializer):
         user = validated_data.get('user')
         thumbnail_sizes = list(map(int, user.account_tier.thumbnail_size.split(',')))
         with img.open(image) as im:
-            for size in thumbnail_sizes:
-                thumbnail_name = f"{image_name}_thumbnail_{size}{image_extension}"
-                im.thumbnail((size, size))
+            original_width, original_height = im.size
+            for height in thumbnail_sizes:
+                thumbnail_name = f"{image_name}_thumbnail_{height}{image_extension}"
+                aspect_ratio = original_width / original_height
+                new_width = int(aspect_ratio * height)
+                im.thumbnail((height, new_width))
                 buffer = BytesIO()
-                im.save(buffer, image_extension.replace('.', ''))
+                if image_extension == '.jpeg':
+                    im.save(buffer, format='JPEG', quality=85)
+                else:
+                    im.save(buffer, image_extension.replace('.', ''))
                 thumbnail_obj = Thumbnail.objects.create(name=thumbnail_name, image=image_obj)
                 thumbnail_obj.thumbnail.save(thumbnail_name, buffer)
         return image_obj

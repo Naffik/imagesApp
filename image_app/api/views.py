@@ -1,3 +1,5 @@
+import magic
+
 from datetime import timedelta
 
 from django.http import FileResponse
@@ -9,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .pagination import ImagePagination
 from .serializers import ImageSerializer, ExpirationLinkSerializer
 from image_app.models import Image, ExpirationLink
 
@@ -28,6 +31,7 @@ class CreateImageView(generics.CreateAPIView):
     """
     permissions_classes = [IsAuthenticated]
     serializer_class = ImageSerializer
+    throttle_scope = 'image_upload'
 
     def post(self, request, *args, **kwargs):
         user = request.user
@@ -54,6 +58,8 @@ class ListImageView(generics.ListAPIView):
     """
     permission_classes = [IsAuthenticated]
     serializer_class = ImageSerializer
+    pagination_class = ImagePagination
+    throttle_scope = 'images_list'
 
     def get_queryset(self):
         user = self.request.user
@@ -68,6 +74,7 @@ class ExpirationLinkCreateAPIView(APIView):
     - id: The unique identifier of the image.
 
     """
+    throttle_scope = 'create_link'
 
     def post(self, request, pk):
         user = request.user
@@ -114,6 +121,7 @@ class ExpirationLinkRetrieveView(APIView):
     - token: The unique identifier associated with the ExpirationLink.
 
     """
+    throttle_scope = 'expiring_images'
 
     def get(self, request, token):
         try:
@@ -125,6 +133,6 @@ class ExpirationLinkRetrieveView(APIView):
             return Response({'error': 'Link has expired'}, status=status.HTTP_410_GONE)
 
         image_path = exp_link.image.original_image.path
-        image_content_type = 'image/jpeg'
+        image_content_type = magic.from_file(image_path, mime=True)
         img = open(image_path, 'rb')
         return FileResponse(img, content_type=image_content_type)

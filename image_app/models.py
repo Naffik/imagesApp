@@ -19,7 +19,7 @@ class Thumbnail(models.Model):
 
 class ExpirationLink(models.Model):
     image = models.ForeignKey(Image, on_delete=models.CASCADE, related_name='img')
-    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False, db_index=True)
     expiration_time = models.DateTimeField()
 
     def is_valid(self):

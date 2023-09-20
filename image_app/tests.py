@@ -161,6 +161,12 @@ class ImageListViewTest(APITestCase):
         response = self.client.get(LIST_IMAGE_URL)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    def tearDown(self):
+        for image in Image.objects.all():
+            if image.original_image:
+                image.original_image.delete(save=False)
+        Image.objects.all().delete()
+
 
 class ExpirationLinkCreateAPIViewTest(APITestCase):
     def setUp(self):
@@ -193,6 +199,12 @@ class ExpirationLinkCreateAPIViewTest(APITestCase):
         self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, {'expiration-time': 999999})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def tearDown(self):
+        for image in Image.objects.all():
+            if image.original_image:
+                image.original_image.delete(save=False)
+        Image.objects.all().delete()
 
 
 class ExpirationLinkRetrieveViewTest(APITestCase):
@@ -234,3 +246,9 @@ class ExpirationLinkRetrieveViewTest(APITestCase):
         self.exp_link.save()
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_410_GONE)
+
+    def tearDown(self):
+        for image in Image.objects.all():
+            if image.original_image:
+                image.original_image.delete(save=False)
+        Image.objects.all().delete()

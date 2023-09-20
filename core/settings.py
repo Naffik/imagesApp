@@ -141,6 +141,15 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
     ],
     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.ScopedRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'images_list': '60/minute',
+        'image_upload': '10/min',
+        'create_link': '40/min',
+        'expiring_images': '15/min',
+    }
 }
 
 SIMPLE_JWT = {
