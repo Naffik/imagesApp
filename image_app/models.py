@@ -10,6 +10,9 @@ class Image(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user', null=True)
     original_image = models.ImageField(upload_to='images/original/')
 
+    class Meta:
+        ordering = ('id',)
+
 
 class Thumbnail(models.Model):
     name = models.CharField(max_length=255, null=False, blank=False)
