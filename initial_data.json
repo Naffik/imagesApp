@@ -1,0 +1,57 @@
+[
+{
+    "model": "user_app.user",
+    "pk": 1,
+    "fields": {
+        "password": "pbkdf2_sha256$600000$v9PGsDI8bdRvQmXCt7vf7w$dJ9xkoCj81vIbpt5xWd6bht+J8UPrRYasEYh84MmZew=",
+        "last_login": "2023-09-18T15:13:06.327Z",
+        "is_superuser": true,
+        "username": "admin@ap.pl",
+        "is_staff": true,
+        "is_active": true,
+        "date_joined": "2023-09-15T10:09:35Z",
+        "email": "admin@ap.pl",
+        "first_name": null,
+        "last_name": null,
+        "account_tier": 3,
+        "groups": [],
+        "user_permissions": []
+    }
+},
+    {
+    "model": "user_app.accounttier",
+    "pk": 1,
+    "fields": {
+        "name": "Basic",
+        "thumbnail_size": "200",
+        "original_link": false,
+        "expiring_link": false,
+        "expiring_link_duration_min": 300,
+        "expiring_link_duration_max": 30000
+    }
+},
+{
+    "model": "user_app.accounttier",
+    "pk": 2,
+    "fields": {
+        "name": "Premium",
+        "thumbnail_size": "200,400",
+        "original_link": true,
+        "expiring_link": false,
+        "expiring_link_duration_min": 300,
+        "expiring_link_duration_max": 30000
+    }
+},
+{
+    "model": "user_app.accounttier",
+    "pk": 3,
+    "fields": {
+        "name": "Enterprise",
+        "thumbnail_size": "200,400",
+        "original_link": true,
+        "expiring_link": true,
+        "expiring_link_duration_min": 300,
+        "expiring_link_duration_max": 30000
+    }
+}
+]
