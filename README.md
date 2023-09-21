@@ -56,6 +56,7 @@ This API allows users to upload, list, and access images based on their account 
 - Admin Panel:
   - Access the Django admin panel at: http://localhost:8000/admin/
   - Create users and assign them to different account tiers.
+  - When creating an account tier ensure to write thumbnails sizes from lowest to highest size. If you are not sure, see other tiers to check.
 - Browsable API:
   - Access the DRF browsable API at: http://localhost:8000/api/
   - From here, you can upload images, list images, and access links based on user privileges.
