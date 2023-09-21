@@ -6,6 +6,6 @@ COPY requirements.txt /code/
 RUN pip3 install -r requirements.txt
 RUN apt-get update && apt-get install -y binutils libproj-dev gdal-bin python-gdal python3-gdal
 COPY . /code/
-
+COPY wait-for-it.sh /wait-for-it.sh
 CMD gunicorn core.wsgi:application --bind 0.0.0.0:8000
 EXPOSE 8000

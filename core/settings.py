@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
-import boto3
 from datetime import timedelta
 from pathlib import Path
 
@@ -28,16 +27,7 @@ SECRET_KEY = 'django-insecure-!kg==wisywsnoy92k)2izjcr&6iq)5^1q6#l-npgdzwd_d-x0u
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-
-def get_ec2_ip_addresses():
-    ec2 = boto3.resource('ec2')
-    instances = ec2.instances.filter(
-        Filters=[{'Name': 'instance-state-name', 'Values': ['running']}])
-    ip_addresses = [instance.public_ip_address for instance in instances]
-    return ip_addresses
-
-
-ALLOWED_HOSTS = get_ec2_ip_addresses()
+ALLOWED_HOSTS = []
 
 # Application definition
 

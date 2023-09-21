@@ -15,7 +15,7 @@ from .pagination import ImagePagination
 from .serializers import ImageSerializer, ExpirationLinkSerializer
 from image_app.models import Image, ExpirationLink
 
-ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png']
+ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'JPG']
 
 
 def allowed_file(filename):
@@ -29,6 +29,7 @@ class CreateImageView(generics.CreateAPIView):
     Parameters:
     - original_image: The image file to be uploaded. The file should have a supported extension.
     """
+    queryset = Image.objects.all()
     permissions_classes = [IsAuthenticated]
     serializer_class = ImageSerializer
     throttle_scope = 'image_upload'
